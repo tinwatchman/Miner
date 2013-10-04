@@ -18,6 +18,7 @@ Should be pretty straightforward to anyone who's played the old Windows version.
 ### Known Issues
 * Noticeable performance slowdown when a mine is selected and revealed (e.g. when losing the game). This seems to be due to adding a large number of Label components to the screen. Still looking for a way to optimize this.
 * Noticeable performance slowdown when creating medium- and hard-difficulty games. More tiles means more overhead. Still working on how best to handle this.
+* Significant performance slowdown when creating medium- and hard-difficulty games while in Test Mode. Add the two above problems up, this is what you get.
 
 ### Other Notes
 I used the PureMVC framework just to prove that I'm comfortable with it. However, I don't really believe that this framework is the best choice for AIR mobile apps or games, especially when using Starling. It tends to require a lot of boilerplate code to handle delayed instantiation views, and while its Notification system is fairly lightweight, it still adds yet another kind of event or message object flying around (in addition to Starling events and Flex/Flash events).
