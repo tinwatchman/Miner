@@ -1,6 +1,9 @@
 package net.jonstout.miner.data
 {
-	public class Notification
+	/**
+	 * Enumeration with names for PureMVC Notifications used in the project.
+	 */
+	public class NotificationName
 	{
 		public static const STARTUP_COMPLETE:String = "STARTUP_COMPLETE";
 		public static const GENERATE_GAME:String = "GENERATE_GAME";

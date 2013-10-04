@@ -1,7 +1,7 @@
 package net.jonstout.miner
 {
 	import net.jonstout.miner.control.GenerateGameCommand;
-	import net.jonstout.miner.data.Notification;
+	import net.jonstout.miner.data.NotificationName;
 	import net.jonstout.miner.view.AlertMediator;
 	import net.jonstout.miner.view.GameMediator;
 	import net.jonstout.miner.view.StartMediator;
@@ -32,9 +32,9 @@ package net.jonstout.miner
 			registerMediator(new AlertMediator());
 			
 			//register commands
-			registerCommand(Notification.GENERATE_GAME, GenerateGameCommand);
+			registerCommand(NotificationName.GENERATE_GAME, GenerateGameCommand);
 			
-			sendNotification(Notification.STARTUP_COMPLETE);
+			sendNotification(NotificationName.STARTUP_COMPLETE);
 		}
 	}
 } class SingletonEnforcer {}

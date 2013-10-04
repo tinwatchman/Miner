@@ -1,7 +1,13 @@
 package net.jonstout.miner.data
 {
-	public class Config
+	/**
+	 * Static class containing configuration options. Available globally.
+	 */
+	public final class Config
 	{
+		// set to true to enable certain debugging functionality
+		public static var TEST_MODE:Boolean = false;
+		
 		protected static var EASY_PROPERTIES:Object = { width:9, height:9, bombs:10 };
 		protected static var MEDIUM_PROPERTIES:Object = { width:16, height:16, bombs:40 };
 		protected static var HARD_PROPERTIES:Object = { width:16, height:30, bombs:99 };
@@ -39,6 +45,7 @@ package net.jonstout.miner.data
 			return BACK_BUTTON_LABELS[ getRandomInt(BACK_BUTTON_LABELS.length) ] as String;
 		}
 		
+		public static const GAME_RENDER_FRAME_DELAY:int = 5;
 		public static const BOMB_CHARACTER:String = "@";
 		public static const BOMBS_LEFT:String = "bombs larboard";
 		public static const BOMBS_TOTAL:String = "bombs entire";

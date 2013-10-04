@@ -1,5 +1,9 @@
 package net.jonstout.miner.model
 {
+	/**
+	 * Contains all necessary state information relating to a single tile
+	 * in the grid.
+	 */
 	public class TileState
 	{
 		public var index:int;

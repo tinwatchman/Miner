@@ -1,15 +1,17 @@
 package net.jonstout.miner.model
 {
+	/**
+	 * Contains and organizes all data related to a single game
+	 */
 	public class GameState
 	{
 		private var _width:int;
 		private var _height:int;
 		private var _numBombs:int;
 		private var _totalBombs:int=0;		
-		private var _map:Object;
 		private var _bombTiles:Vector.<TileState>;
 		private var _isGameOver:Boolean=false;
-		private var getTileKey:String;
+		private var _map:Array;
 		
 		public function GameState(width:int, height:int, numBombs:int)
 		{
@@ -17,8 +19,12 @@ package net.jonstout.miner.model
 			_height = height;
 			_numBombs = numBombs;
 			_totalBombs = numBombs;
-			_map = new Object();
 			_bombTiles = new Vector.<TileState>();
+			// create map and create a dictionary for each row
+			_map = new Array();
+			for (var yCoord:int=0; yCoord<_height; yCoord++) {
+				_map[yCoord] = new Array();
+			}
 		}
 		
 		// getters-setters
@@ -47,12 +53,7 @@ package net.jonstout.miner.model
 		{
 			return _totalBombs;
 		}
-		
-		public function get map():Object
-		{
-			return _map;
-		}
-		
+				
 		public function get bombTiles():Vector.<TileState>
 		{
 			return _bombTiles;
@@ -68,10 +69,15 @@ package net.jonstout.miner.model
 			_isGameOver = value;
 		}
 		
+		public function get map():Array
+		{
+			return _map;
+		}
+				
 		// tile functions
 		
 		public function addTile(tile:TileState):void {
-			_map[ String(tile.mapX + "_" + tile.mapY) ] = tile;
+			_map[tile.mapY][tile.mapX] = tile;
 			if (tile.isBomb) {
 				_bombTiles.push(tile);
 			}
@@ -79,8 +85,7 @@ package net.jonstout.miner.model
 		
 		public function getTile(x:int, y:int):TileState {
 			if (x >= 0 && y >= 0 && x < _width && y < _height) {
-				getTileKey = x + "_" + y;
-				return _map[ getTileKey ] as TileState;
+				return _map[y][x] as TileState;
 			}
 			return null;
 		}
@@ -92,35 +97,36 @@ package net.jonstout.miner.model
 		 * @return Vector of neighboring TileStates
 		 */
 		public function getTileVicinity(x:int, y:int):Vector.<TileState> {
-			var xBehind:int = x-1;
-			var xForward:int = x+1;
-			var yUp:int = y-1;
-			var yDown:int = y+1;
-			const searchPattern:Array = [
-				{'x':xBehind,'y':yUp}, // top-left
-				{'x':x, 'y':yUp}, // top
-				{'x':xForward, 'y':yUp}, // top-right
-				{'x':xBehind, 'y':y}, // left
-				{'x':xForward, 'y':y}, // right
-				{'x':xBehind, 'y':yDown}, // bottom-left
-				{'x':x, 'y':yDown}, // bottom
-				{'x':xForward, 'y':yDown} // bottom-right
-			];
+			const searchPattern:Array = new Array(
+				[(x-1),(y-1)], // top-left
+				[x, (y-1)], // top
+				[(x+1), (y-1)], // top-right
+				[(x-1), y], // left
+				[(x+1), y], // right
+				[(x-1), (y+1)], // bottom-left
+				[x, (y+1)], // bottom
+				[(x+1), (y+1)] // bottom-right
+			);
 			var vicinity:Vector.<TileState> = new Vector.<TileState>();
 			var temp:TileState;
 			for (var i:int = 0; i<8; ++i) {
-				temp = getTile( searchPattern[i]['x'], searchPattern[i]['y'] );
+				temp = getTile( searchPattern[i][0], searchPattern[i][1] );
 				if (temp != null) {
 					vicinity.push(temp);
 				}
 			}
 			return vicinity;
 		}
-				
+		
+		// destructor
+		
 		public function dispose():void 
 		{
-			for (var key:String in _map) {
-				delete _map[key];
+			for (var y:int=0; y<_height; ++y) {
+				for (var x:int=0; x<_width; ++x) {
+					_map[y][x] = null;
+				}
+				_map[y] = null;
 			}
 			_map = null;
 			_bombTiles.splice(0, _bombTiles.length);

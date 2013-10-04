@@ -2,7 +2,7 @@ package net.jonstout.miner.view
 {
 	import net.jonstout.miner.data.AlertRequest;
 	import net.jonstout.miner.data.Config;
-	import net.jonstout.miner.data.Notification;
+	import net.jonstout.miner.data.NotificationName;
 	
 	import org.puremvc.as3.interfaces.INotification;
 	
@@ -15,21 +15,14 @@ package net.jonstout.miner.view
 		public function StartMediator()
 		{
 			super(NAME, null);
-			addInterest(Notification.START_VIEW_UPDATED, onStartViewUpdate);
+			addInterest(NotificationName.START_VIEW_UPDATED, onStartViewUpdate);
 		}
 		
 		private function get view():StartView {
 			return getViewComponent() as StartView;
 		}
 		
-		override protected function attachView(viewComponent:Object):void {
-			super.attachView(viewComponent);
-			view.addEventListener(StartView.OPTION_SELECTED, onOptionSelected);
-		}
-		
-		override protected function detachView():void {
-			view.removeEventListener(StartView.OPTION_SELECTED, onOptionSelected);
-		}
+		// VIEW HANDLING BOILERPLATE
 		
 		private function onStartViewUpdate(note:INotification):void {
 			if (note.getBody() is StartView) {
@@ -40,11 +33,22 @@ package net.jonstout.miner.view
 			}
 		}
 		
+		override protected function attachView(viewComponent:Object):void {
+			super.attachView(viewComponent);
+			view.addEventListener(StartView.OPTION_SELECTED, onOptionSelected);
+		}
+		
+		override protected function detachView():void {
+			view.removeEventListener(StartView.OPTION_SELECTED, onOptionSelected);
+		}
+				
+		// EVENT HANDLERS
+		
 		private function onOptionSelected(event:Event):void {
 			// send loading message
-			sendNotification(Notification.MESSAGE, new AlertRequest(Config.LOADING_MESSAGE, true));
+			sendNotification( NotificationName.MESSAGE, new AlertRequest(Config.LOADING_MESSAGE) );
 			// generate the requested game
-			sendNotification(Notification.GENERATE_GAME, event.data);
+			sendNotification( NotificationName.GENERATE_GAME, event.data );
 		}
 	}
 }

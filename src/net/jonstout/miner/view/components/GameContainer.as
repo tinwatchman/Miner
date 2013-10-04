@@ -30,28 +30,7 @@ package net.jonstout.miner.view.components
 			this.horizontalScrollPolicy = ScrollContainer.SCROLL_POLICY_ON;
 		}
 		
-		public function setGameArea(mapX:int, mapY:int):void {
-			contentWidth = (mapX*Tile.TILE_WIDTH)+(CONTENT_PADDING*2);
-			contentHeight = (mapY*Tile.TILE_HEIGHT)+(CONTENT_PADDING*2);
-		}
-				
-		public function addTile(tile:Tile):void {
-			tile.owner = this;
-			tiles.push(tile);
-			tile.x = CONTENT_PADDING + (tile.state.mapX * Tile.TILE_WIDTH);
-			tile.y = CONTENT_PADDING + (tile.state.mapY * Tile.TILE_HEIGHT);
-			addChild(tile);
-		}
-		
-		public function refresh():void {
-			isRefreshed = true;
-			for (var i:int=0; i<tiles.length; ++i) {
-				if (tiles[i].state.isChanged) {
-					tiles[i].state.isChanged=false;
-					tiles[i].invalidate();
-				}
-			}
-		}
+		// COMPONENT FUNCTIONS
 		
 		override protected function initialize():void {
 			super.initialize();
@@ -74,12 +53,50 @@ package net.jonstout.miner.view.components
 			}
 		}
 		
+		// PUBLIC FUNCTIONS - INVOKED BY PARENT
+		
+		public function setGameArea(mapX:int, mapY:int):void {
+			contentWidth = (mapX*Tile.TILE_WIDTH)+(CONTENT_PADDING*2);
+			contentHeight = (mapY*Tile.TILE_HEIGHT)+(CONTENT_PADDING*2);
+		}
+				
+		public function addTile(tile:Tile):void {
+			tile.owner = this;
+			tiles.push(tile);
+			tile.x = CONTENT_PADDING + (tile.state.mapX * Tile.TILE_WIDTH);
+			tile.y = CONTENT_PADDING + (tile.state.mapY * Tile.TILE_HEIGHT);
+			addChild(tile);
+		}
+		
+		public function refresh():void {
+			isRefreshed = true;
+			for (var i:int=0; i<tiles.length; ++i) {
+				if (tiles[i].state.isChanged) {
+					tiles[i].state.isChanged=false;
+					tiles[i].invalidate();
+				}
+			}
+			invalidate();
+		}
+				
 		public function gameOver():void {
 			var len:int = tiles.length;
 			for (var i:int=0; i<len; ++i) {
 				tiles[i].gameOver();
 			}
 		}
+		
+		public function clear():void {
+			for (var i:int=0; i<tiles.length; ++i) {
+				tiles[i].dispose();
+				tiles[i] = null;
+			}
+			tiles = null;
+			contentWidth = -1;
+			contentHeight = -1;
+		}
+		
+		// PUBLIC FUNCTIONS - INVOKED BY TILES/CHILDREN
 		
 		public function onTileReveal(tile:Tile):void {
 			if (tile.state.isBomb) {
@@ -94,16 +111,6 @@ package net.jonstout.miner.view.components
 			for (var i:int = 0; i<tiles.length; ++i) {
 				tiles[i].checkSelection(selectedTile);
 			}
-		}
-		
-		public function clear():void {
-			for (var i:int=0; i<tiles.length; ++i) {
-				tiles[i].dispose();
-				tiles[i] = null;
-			}
-			tiles = null;
-			contentWidth = -1;
-			contentHeight = -1;
 		}
 	}
 }

@@ -2,7 +2,7 @@ package net.jonstout.miner.view
 {
 	import net.jonstout.miner.data.AlertRequest;
 	import net.jonstout.miner.data.Config;
-	import net.jonstout.miner.data.Notification;
+	import net.jonstout.miner.data.NotificationName;
 	import net.jonstout.miner.model.GameState;
 	import net.jonstout.miner.model.TileState;
 	import net.jonstout.miner.view.components.Tile;
@@ -11,30 +11,30 @@ package net.jonstout.miner.view
 	
 	import starling.events.Event;
 
+	/**
+	 * Mediator that manages the Game View. Contains most of the business logic
+	 * related to the game.
+	 */
 	public class GameMediator extends BaseMediator
 	{
 		public static const NAME:String = "GameMediator";
 		
 		private var state:GameState;
+		private var frameCount:int;
 		private var isAlertShown:Boolean=false;
 		
 		public function GameMediator()
 		{
 			super(NAME, null);
-			addInterest(Notification.GAME_VIEW_UPDATED, onGameViewUpdate);
-			addInterest(Notification.DISPLAY_GAME, onDisplayGame);
+			addInterest(NotificationName.GAME_VIEW_UPDATED, onGameViewUpdate);
+			addInterest(NotificationName.DISPLAY_GAME, onDisplayGame);
 		}
 		
 		private function get view():GameView {
 			return getViewComponent() as GameView;
 		}
 		
-		override protected function attachView(viewComponent:Object):void {
-			super.attachView(viewComponent);
-			view.addEventListener(GameView.BOMB, onBomb);
-			view.addEventListener(GameView.TILE_REVEAL, onTileReveal);
-			view.addEventListener(GameView.BACK, onBack);
-		}
+		// View Handling Boilerplate
 		
 		private function onGameViewUpdate(note:INotification):void {
 			if (note.getBody() is GameView) {
@@ -45,26 +45,86 @@ package net.jonstout.miner.view
 			}
 		}
 		
+		override protected function attachView(viewComponent:Object):void {
+			super.attachView(viewComponent);
+			view.addEventListener(GameView.BOMB, onBomb);
+			view.addEventListener(GameView.TILE_REVEAL, onTileReveal);
+			view.addEventListener(GameView.BACK, onBack);
+		}
+		
+		override protected function detachView():void {
+			view.removeEventListener(GameView.BOMB, onBomb);
+			view.removeEventListener(GameView.TILE_REVEAL, onTileReveal);
+			view.removeEventListener(GameView.BACK, onBack);
+		}
+		
+		// Display / Render Game Area
+		
 		private function onDisplayGame(note:INotification):void {
 			state = note.getBody() as GameState;
-			if (view) {
-				view.setGameArea(state.width, state.height);
-				view.setBombsLeft(state.numBombs);
-				view.setTotalBombs(state.totalBombs);
-				var tile:Tile;
-				for each (var tileState:TileState in state.map) {
-					tile = new Tile(tileState);
-					view.addTile(tile);
-				}
-				view.addEventListener(GameView.REFRESH_COMPLETE, onRefreshComplete);
-				view.refreshMap();
+			// even though we have the state now, let's wait a few frames
+			// and let Flash catch up with garbage collection
+			frameCount=0;
+			view.addEventListener(Event.ENTER_FRAME, onEnterFrame);
+		}
+		
+		private function onEnterFrame(event:Event):void {
+			frameCount++;
+			if (frameCount >= Config.GAME_RENDER_FRAME_DELAY) {
+				view.removeEventListener(Event.ENTER_FRAME, onEnterFrame);
+				renderGame();
 			}
 		}
 		
-		private function onRefreshComplete(event:Event):void {
-			view.removeEventListener(GameView.REFRESH_COMPLETE, onRefreshComplete);
-			// hide the loading message when we've refreshed the game screen
-			sendNotification(Notification.HIDE_ALERT);
+		private function renderGame():void {
+			view.setGameArea(state.width, state.height);
+			view.setBombsLeft(state.numBombs);
+			view.setTotalBombs(state.totalBombs);
+			var tile:Tile;
+			var tileState:TileState;
+			for (var y:int=0; y<state.height; ++y) {
+				for (var x:int=0; x<state.height; ++x) {
+					tileState = state.getTile(x, y);
+					if (tileState) {
+						tile = new Tile(tileState);
+						view.addTile(tile);
+					}
+				}
+			}
+			view.addEventListener(GameView.REFRESH_COMPLETE, onFirstRefreshComplete);
+			view.refreshMap();
+		}
+		
+		/**
+		 * hide the loading message when we've refreshed the game screen 
+		 */
+		private function onFirstRefreshComplete(event:Event):void {
+			// remove the event listener - we're only interested in this function
+			// being triggered by the first refresh.
+			view.removeEventListener(GameView.REFRESH_COMPLETE, onFirstRefreshComplete);
+			sendNotification(NotificationName.HIDE_ALERT);
+		}
+		
+		// Event Listeners
+		
+		/**
+		 * Handles when user hits the back button / presses the device's back button
+		 */
+		private function onBack(event:Event):void {
+			if (isAlertShown) {
+				// if back button on Android is pressed while an alert is being shown, exit the alert
+				sendNotification(NotificationName.HIDE_ALERT);
+			} else if (state.isGameOver) {
+				// if the game is over, let the user leave without needing to confirm
+				closeGame();
+			} else {
+				// show user a confirm alert to make sure they want to leave the game
+				var request:AlertRequest = new AlertRequest(Config.QUIT_GAME_MESSAGE);
+				request.setButtons(Config.QUIT_CONFIRM_LABEL, Config.QUIT_CANCEL_LABEL);
+				request.setResponder(this, onQuitConfirmed, onAlertClosed);
+				isAlertShown = true;
+				sendNotification(NotificationName.CONFIRM, request);
+			}
 		}
 		
 		/**
@@ -77,7 +137,7 @@ package net.jonstout.miner.view
 			state.isGameOver = true;
 			view.gameOver();
 			isAlertShown = true;
-			sendNotification(Notification.ALERT, request);
+			sendNotification(NotificationName.ALERT, request);
 		}
 				
 		/**
@@ -147,22 +207,7 @@ package net.jonstout.miner.view
 			}
 		}
 		
-		private function onBack(event:Event):void {
-			if (isAlertShown) {
-				// if back button on Android is pressed while an alert is being shown, exit the alert
-				sendNotification(Notification.HIDE_ALERT);
-			} else if (state.isGameOver) {
-				// if the game is over, let the user leave without needing to confirm
-				closeGame();
-			} else {
-				// show user a confirm alert to make sure they want to leave the game
-				var request:AlertRequest = new AlertRequest(Config.QUIT_GAME_MESSAGE);
-				request.setButtons(Config.QUIT_CONFIRM_LABEL, Config.QUIT_CANCEL_LABEL);
-				request.setResponder(this, onQuitConfirmed, onAlertClosed);
-				isAlertShown = true;
-				sendNotification(Notification.CONFIRM, request);
-			}
-		}
+		// Confirm and Alert Responder functions
 		
 		private function onQuitConfirmed():void {
 			isAlertShown = false;
@@ -173,6 +218,8 @@ package net.jonstout.miner.view
 			isAlertShown = false;
 		}
 		
+		// Private Functions
+		
 		private function gameWon():void {
 			// show all tiles
 			state.isGameOver = true;
@@ -182,14 +229,14 @@ package net.jonstout.miner.view
 			var request:AlertRequest = new AlertRequest( Config.getWinMessage() );
 			request.okText = Config.WIN_BUTTON_LABEL;
 			request.setResponder(this, onAlertClosed);
-			sendNotification(Notification.ALERT, request);
+			sendNotification(NotificationName.ALERT, request);
 		}
 		
 		private function closeGame():void {
 			state.dispose();
 			state = null;
 			view.clearMap();
-			sendNotification(Notification.SHOW_START_VIEW);
+			sendNotification(NotificationName.SHOW_START_VIEW);
 		}
 	}
 }

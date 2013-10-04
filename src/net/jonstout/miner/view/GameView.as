@@ -53,48 +53,7 @@ package net.jonstout.miner.view
 			this.verticalScrollPolicy = SCROLL_POLICY_OFF;
 		}
 		
-		public function setGameArea(mapX:int, mapY:int):void {
-			if (container) {
-				container.setGameArea(mapX, mapY);
-			}
-		}
-		
-		public function setBombsLeft(value:int):void {
-			if (value != bombsLeft) {
-				bombsLeft = value;
-				isBombsLeftDirty=true;
-				invalidate();
-			}
-		}
-		
-		public function setTotalBombs(value:int):void {
-			if (value != totalBombs) {
-				totalBombs = value;
-				isTotalBombsDirty=true;
-				invalidate();
-			}
-		}
-		
-		public function addTile(tile:Tile):void {
-			if (container) {
-				container.addTile(tile);
-			}
-		}
-		
-		public function refreshMap():void {
-			if (container) {
-				container.addEventListener(GameContainer.REFRESH_COMPLETE, onRefreshComplete);
-				container.refresh();
-			}
-		}
-		
-		public function gameOver():void {
-			container.gameOver();
-		}
-		
-		public function clearMap():void {
-			container.clear();
-		}
+		// COMPONENT METHODS
 		
 		override protected function initialize():void {
 			super.initialize();
@@ -170,6 +129,53 @@ package net.jonstout.miner.view
 			}
 		}
 		
+		// PUBLIC FUNCTIONS (mostly sending information down to children)
+		
+		public function setGameArea(mapX:int, mapY:int):void {
+			if (container) {
+				container.setGameArea(mapX, mapY);
+			}
+		}
+		
+		public function setBombsLeft(value:int):void {
+			if (value != bombsLeft) {
+				bombsLeft = value;
+				isBombsLeftDirty=true;
+				invalidate();
+			}
+		}
+		
+		public function setTotalBombs(value:int):void {
+			if (value != totalBombs) {
+				totalBombs = value;
+				isTotalBombsDirty=true;
+				invalidate();
+			}
+		}
+		
+		public function addTile(tile:Tile):void {
+			if (container) {
+				container.addTile(tile);
+			}
+		}
+		
+		public function refreshMap():void {
+			if (container) {
+				container.addEventListener(GameContainer.REFRESH_COMPLETE, onRefreshComplete);
+				container.refresh();
+			}
+		}
+		
+		public function gameOver():void {
+			container.gameOver();
+		}
+		
+		public function clearMap():void {
+			container.clear();
+		}
+		
+		// EVENT HANDLERS
+		
 		private function onBomb(event:Event):void {
 			dispatchEventWith(BOMB, false, event.data);
 		}
@@ -179,7 +185,6 @@ package net.jonstout.miner.view
 		}
 		
 		private function onRefreshComplete(event:Event):void {
-			trace("GameContainer Refresh Complete");
 			container.removeEventListener(GameContainer.REFRESH_COMPLETE, onRefreshComplete);
 			dispatchEventWith(REFRESH_COMPLETE);
 		}
@@ -190,6 +195,6 @@ package net.jonstout.miner.view
 		
 		private function onBackButton(event:Event):void {
 			dispatchEventWith(BACK);
-		}
+		}		
 	}
 }

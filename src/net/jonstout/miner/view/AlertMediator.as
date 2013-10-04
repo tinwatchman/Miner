@@ -3,7 +3,7 @@ package net.jonstout.miner.view
 	import feathers.core.PopUpManager;
 	
 	import net.jonstout.miner.data.AlertRequest;
-	import net.jonstout.miner.data.Notification;
+	import net.jonstout.miner.data.NotificationName;
 	import net.jonstout.miner.view.alerts.Alert;
 	import net.jonstout.miner.view.alerts.Confirm;
 	import net.jonstout.miner.view.alerts.Message;
@@ -14,6 +14,9 @@ package net.jonstout.miner.view
 	import starling.display.Quad;
 	import starling.events.Event;
 
+	/**
+	 * Mediator to handle and manage alert popups.
+	 */
 	public class AlertMediator extends BaseMediator
 	{
 		public static const NAME:String = "AlertMediator";
@@ -23,10 +26,10 @@ package net.jonstout.miner.view
 		public function AlertMediator()
 		{
 			super(NAME, null);
-			addInterest(Notification.MESSAGE, onMessage);
-			addInterest(Notification.ALERT, onAlert);
-			addInterest(Notification.CONFIRM, onConfirm);
-			addInterest(Notification.HIDE_ALERT, onHide);
+			addInterest(NotificationName.MESSAGE, onMessage);
+			addInterest(NotificationName.ALERT, onAlert);
+			addInterest(NotificationName.CONFIRM, onConfirm);
+			addInterest(NotificationName.HIDE_ALERT, onHide);
 		}
 		
 		public function get message():Message {

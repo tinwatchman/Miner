@@ -1,6 +1,6 @@
 package net.jonstout.miner.control
 {
-	import net.jonstout.miner.data.Notification;
+	import net.jonstout.miner.data.NotificationName;
 	import net.jonstout.miner.model.GameState;
 	import net.jonstout.miner.model.TileState;
 	
@@ -19,7 +19,7 @@ package net.jonstout.miner.control
 		override public function execute(notification:INotification):void 
 		{
 			gameState = new GameState(notification.getBody().width, notification.getBody().height, notification.getBody().bombs);
-			var baseMap:Vector.<Boolean> = generateMap(gameState.width, gameState.height, gameState.totalBombs);
+			var baseMap:Vector.<Boolean> = generateBaseMap(gameState.width, gameState.height, gameState.totalBombs);
 			var index:int = 0;
 			var tile:TileState;
 			// generate tiles for game state
@@ -38,18 +38,28 @@ package net.jonstout.miner.control
 				}
 			}
 			// now we're done, go back through and calculate bombCounts for the non-bomb tiles
-			for each (tile in gameState.map) {
-				if (!tile.isBomb) {
-					tile.bombCount = getBombCount(tile.mapX, tile.mapY);
+			for (y=0; y<gameState.height; ++y) {
+				for (x=0; x<gameState.width; ++x) {
+					tile = gameState.map[y][x] as TileState;
+					if ( !isBombTile(tile) ) {
+						tile.bombCount = getBombCount(x, y);
+					}
 				}
 			}
 			// send on game state and shut down
-			sendNotification(Notification.SHOW_GAME_VIEW);
-			sendNotification(Notification.DISPLAY_GAME, gameState);
+			sendNotification(NotificationName.SHOW_GAME_VIEW);
+			sendNotification(NotificationName.DISPLAY_GAME, gameState);
 			gameState=null;
 		}
 		
-		private function generateMap(width:int, height:int, bombNum:int):Vector.<Boolean> {
+		/**
+		 * This function generates a random distribution of bombs across a map of a given area.
+		 * @param map width
+		 * @param map height
+		 * @param number of bombs
+		 * @return Vector of Booleans (representing whether or not that tile is a bomb)
+		 */
+		private function generateBaseMap(width:int, height:int, bombNum:int):Vector.<Boolean> {
 			var totalTiles:int = width * height;
 			// generate base game map populated with bombs
 			var map:Vector.<Boolean> = new Vector.<Boolean>(totalTiles, true);
@@ -77,45 +87,30 @@ package net.jonstout.miner.control
 			return map;
 		}
 		
+		/**
+		 * @param tile's x coordinate
+		 * @param tile's y coordinate
+		 * @return count of bomb tiles around the given tile's position
+		 */
 		private function getBombCount(tileX:int, tileY:int):int {
+			var vicinity:Vector.<TileState> = gameState.getTileVicinity(tileX, tileY);
+			var len:int = vicinity.length;
 			var count:int = 0;
-			var xBehind:int = tileX-1;
-			var xForward:int = tileX+1;
-			var yUp:int = tileY-1;
-			var yDown:int = tileY+1;
-			var temp:TileState;
-			// search row above tile
-			if (yUp >= 0) {
-				for (var tempX:int=xBehind; tempX<=xForward; tempX++) {
-					temp = gameState.getTile(tempX, yUp); // this function will return null if topX is less than 0
-					if ( isTileBomb(temp) ) {
-						count++;
-					}
+			for (var i:int=0; i<len; ++i) {
+				if ( isBombTile(vicinity[i]) ) {
+					count++;
 				}
-			}
-			// check tiles to the left and the right
-			temp = gameState.getTile(xBehind, tileY);
-			if ( isTileBomb(temp) ) {
-				count++;
-			}
-			temp = gameState.getTile(xForward, tileY);
-			if ( isTileBomb(temp) ) {
-				count++;
-			}
-			// search row below tile
-			if (yDown < gameState.height) {
-				for (tempX=xBehind; tempX<=xForward; tempX++) {
-					temp = gameState.getTile(tempX, yDown);
-					if ( isTileBomb(temp) ) {
-						count++;
-					}
-				}
-			}
+			}			
 			// return total count
 			return count;
 		}
 		
-		private function isTileBomb(tile:TileState):Boolean {
+		/**
+		 * Checks to see if the tile exists and if it is a bomb tile.
+		 * @param tile
+		 * @return true or false
+		 */
+		private function isBombTile(tile:TileState):Boolean {
 			return (tile != null && tile.isBomb);
 		}
 	}

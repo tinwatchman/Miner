@@ -1,6 +1,6 @@
 package net.jonstout.miner
 {
-	import net.jonstout.miner.data.Notification;
+	import net.jonstout.miner.data.NotificationName;
 	import net.jonstout.miner.view.BaseMediator;
 	
 	import org.puremvc.as3.interfaces.INotification;
@@ -15,9 +15,9 @@ package net.jonstout.miner
 		{
 			super(NAME, view);
 			// notification interests
-			addInterest(Notification.STARTUP_COMPLETE, onStartupComplete);
-			addInterest(Notification.SHOW_GAME_VIEW, onShowGameView);
-			addInterest(Notification.SHOW_START_VIEW, onShowStartView);
+			addInterest(NotificationName.STARTUP_COMPLETE, onStartupComplete);
+			addInterest(NotificationName.SHOW_GAME_VIEW, onShowGameView);
+			addInterest(NotificationName.SHOW_START_VIEW, onShowStartView);
 			// event listeners
 			view.addEventListener(MinerApplication.NOTIFY_START_MEDIATOR, onNotifyStartMediator);
 			view.addEventListener(MinerApplication.NOTIFY_GAME_MEDIATOR, onNotifyGameMediator);
@@ -40,11 +40,11 @@ package net.jonstout.miner
 		}
 		
 		private function onNotifyStartMediator(event:Event):void {
-			sendNotification(Notification.START_VIEW_UPDATED, event.data);
+			sendNotification(NotificationName.START_VIEW_UPDATED, event.data);
 		}
 		
 		private function onNotifyGameMediator(event:Event):void {
-			sendNotification(Notification.GAME_VIEW_UPDATED, event.data);
+			sendNotification(NotificationName.GAME_VIEW_UPDATED, event.data);
 		}		
 	}
 }

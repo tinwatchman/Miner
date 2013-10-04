@@ -8,6 +8,7 @@
 	<fx:Script>
 		<![CDATA[
 			import net.jonstout.miner.MinerApplication;
+			import net.jonstout.miner.data.Config;
 			
 			import starling.core.Starling;
 			
@@ -18,6 +19,7 @@
 				stage.addEventListener(Event.RESIZE, onResize);
 				NativeApplication.nativeApplication.addEventListener(Event.DEACTIVATE, onAppDeactivate);
 				_starling = new Starling(MinerApplication, this.stage);
+				_starling.showStats = Config.TEST_MODE;
 				_starling.start();
 			}
 			

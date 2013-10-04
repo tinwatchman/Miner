@@ -25,14 +25,15 @@ package net.jonstout.miner.view.components
 		public static const EXPLODED_COLOR:uint = Color.RED;
 		public static const MARKED_COLOR:uint = Color.GREEN;
 		
-		private var _state:TileState;
-		
 		public var owner:GameContainer;
 		
 		private var label:Label;
 		private var background:QuadBatch;
+		
+		private var _state:TileState;
 		private var _isSelected:Boolean;
 		private var isExploded:Boolean;
+		private var isLabelAdded:Boolean=false;
 		
 		public function Tile(state:TileState)
 		{
@@ -43,6 +44,8 @@ package net.jonstout.miner.view.components
 			addEventListener(TouchEvent.TOUCH, onTouched);
 		}
 		
+		// GETTERS AND SETTERS
+		
 		public function get state():TileState
 		{
 			return _state;
@@ -52,6 +55,8 @@ package net.jonstout.miner.view.components
 		{
 			return _isSelected;
 		}
+		
+		// PUBLIC FUNCTIONS (called by parent GameContainer)
 		
 		public function checkSelection(selection:Tile):void {
 			if (_isSelected && selection != this) {
@@ -71,16 +76,7 @@ package net.jonstout.miner.view.components
 			invalidate();
 		}
 		
-		override public function dispose():void {
-			super.dispose();
-			removeEventListener(TouchEvent.TOUCH, onTouched);
-			removeChild(label);
-			label = null;
-			removeChild(background);
-			background = null;
-			_state = null;
-			owner = null;
-		}
+		// COMPONENT METHODS
 		
 		override protected function initialize():void {
 			setSizeInternal(TILE_WIDTH, TILE_HEIGHT, false);
@@ -97,17 +93,22 @@ package net.jonstout.miner.view.components
 				} else {
 					label.text = String(state.bombCount);
 				}
-				addChild(label);
-				label.validate();
+				// only add after we need it 
 			}
 		}
 		
 		override protected function draw():void {
 			super.draw();
-			if (label) {
+			if (label && (Config.TEST_MODE || (!isLabelAdded && _state.isRevealed))) {
+				// only add to stage when revealed (or in test mode)
+				isLabelAdded = true;
+				addChild(label);
+				label.validate();
+			}
+			if (label && isLabelAdded) {
+				// position label if necessary
 				label.x = (TILE_WIDTH*0.5)-(label.width*0.5);
 				label.y = (TILE_HEIGHT*0.5)-(label.height*0.5);
-				//label.visible = _state.isRevealed;
 			}
 			if (background) {
 				background.reset();
@@ -133,6 +134,19 @@ package net.jonstout.miner.view.components
 			}
 		}
 		
+		override public function dispose():void {
+			super.dispose();
+			removeEventListener(TouchEvent.TOUCH, onTouched);
+			removeChild(label);
+			label = null;
+			removeChild(background);
+			background = null;
+			_state = null;
+			owner = null;
+		}
+		
+		// EVENT HANDLERS
+		
 		private function onTouched(event:TouchEvent):void {
 			if (isEnabled) {
 				var touches:Vector.<Touch> = event.getTouches(this);
@@ -152,6 +166,8 @@ package net.jonstout.miner.view.components
 				}
 			}
 		}
+		
+		// PRIVATE FUNCTIONS
 		
 		private function findTouch(touches:Vector.<Touch>, phase:String):Touch {
 			var len:int = touches.length;

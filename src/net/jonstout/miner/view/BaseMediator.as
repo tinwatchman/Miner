@@ -3,6 +3,10 @@ package net.jonstout.miner.view
 	import org.puremvc.as3.interfaces.INotification;
 	import org.puremvc.as3.patterns.mediator.Mediator;
 	
+	/**
+	 * Base boilerplate subclass of standard PureMVC Mediator with custom methods
+	 * for this project.  
+	 */
 	public class BaseMediator extends Mediator
 	{
 		private var interestMap:Object;
