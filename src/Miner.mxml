@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark"
+			   top="0" left="0" right="0" bottom="0" 
+			   addedToStage="onAdded(event)" resize="onResize(event)"
+			   backgroundAlpha="0"
+			   frameRate="60">
+	<fx:Script>
+		<![CDATA[
+			import net.jonstout.miner.MinerApplication;
+			
+			import starling.core.Starling;
+			
+			private var _starling:Starling;
+			
+			private function onAdded(event:Event):void
+			{
+				stage.addEventListener(Event.RESIZE, onResize);
+				NativeApplication.nativeApplication.addEventListener(Event.DEACTIVATE, onAppDeactivate);
+				_starling = new Starling(MinerApplication, this.stage);
+				_starling.start();
+			}
+			
+			private function onResize(event:Event):void
+			{
+				if (_starling) {
+					_starling.stage.stageWidth = this.stage.stageWidth;
+					_starling.stage.stageHeight = this.stage.stageHeight;
+					// try to adjust viewport
+					var viewPort:Rectangle = _starling.viewPort;
+					viewPort.width = stage.stageWidth;
+					viewPort.height = stage.stageHeight;
+					try {
+						_starling.viewPort = viewPort;
+					} catch (e:Error) {
+					}
+				}
+			}
+			
+			private function onAppDeactivate(event:Event):void
+			{
+				_starling.stop();
+				NativeApplication.nativeApplication.addEventListener(Event.ACTIVATE, onAppReactivate);
+			}
+			
+			private function onAppReactivate(event:Event):void
+			{
+				NativeApplication.nativeApplication.removeEventListener(Event.ACTIVATE, onAppReactivate);
+				_starling.start();
+			}			
+		]]>
+	</fx:Script>
+</s:Application>
